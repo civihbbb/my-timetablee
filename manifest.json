@@ -1,0 +1,9 @@
+{
+  "name": "My Timetable",
+  "short_name": "Timetable",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f8f5",
+  "theme_color": "#729183",
+  "description": "A minimal weekly school timetable"
+}

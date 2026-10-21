@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#729183">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Timetable">
+<link rel="manifest" href="manifest.json">
+<title>Timetable</title>
+<style>
+:root{--bg:#f7f8f5;--surface:#fff;--surface2:#e8eee8;--accent:#729183;--accent-dark:#344e43;--ink:#26352e;--muted:#77827b;--line:#e5e9e4;--shadow:0 8px 28px rgba(30,50,40,.05)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{max-width:650px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 7px}
+h1{font-size:30px;letter-spacing:-.04em;margin:0;font-weight:700}h2{font-size:21px;letter-spacing:-.025em;margin:0 0 8px}.sub{color:var(--muted);font-size:14px;margin:7px 0 0}
+.iconbtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:14px;width:46px;height:46px;display:grid;place-items:center;font-size:20px;flex-shrink:0}
+.toolbar{display:flex;gap:8px;overflow:auto;padding:2px 0 14px;margin-bottom:4px;scrollbar-width:none}.toolbar::-webkit-scrollbar{display:none}
+.daybtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:12px;padding:10px 13px;white-space:nowrap;font-size:13px}.daybtn.active{background:var(--accent);border-color:var(--accent);color:white}
+.list{display:flex;flex-direction:column;gap:9px}.period{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:center;padding:14px 15px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:var(--shadow);min-height:65px}.time{font-size:12px;line-height:1.5;color:var(--muted);font-variant-numeric:tabular-nums}.subject{font-size:15px;font-weight:550;overflow-wrap:anywhere}.period.current{background:var(--surface2);border-color:var(--accent)}.period.current .subject{color:var(--accent-dark)}.tag{display:inline-block;margin-top:5px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent-dark);font-weight:700}
+.empty{padding:35px 22px;text-align:center;border:1px dashed var(--line);border-radius:18px;background:var(--surface)}.empty p{color:var(--muted);font-size:14px;line-height:1.5;margin:8px 0 16px}
+.primary,.secondary,.danger{border:0;border-radius:13px;padding:12px 16px;font-weight:650}.primary{background:var(--accent);color:#fff}.secondary{background:var(--surface2);color:var(--accent-dark)}.danger{background:#f7e7e7;color:#8d3d48}.wide{width:100%}
+.footer{display:flex;justify-content:center;gap:9px;margin-top:22px}.footer button{display:flex;align-items:center;gap:8px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px}.section-label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 13px}
+.theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.theme{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px;text-align:left;color:var(--ink)}.theme.selected{border:2px solid var(--accent);padding:11px}.swatches{display:flex;gap:5px;margin-bottom:9px}.swatches span{height:24px;flex:1;border-radius:7px}.theme-name{font-weight:600;font-size:14px}.check{float:right;color:var(--accent-dark)}
+label{display:block;font-size:13px;color:var(--muted);margin:0 0 6px}.field{margin-bottom:12px}input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);min-width:0}
+.editor-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.edit-card{padding:14px;border:1px solid var(--line);border-radius:15px;margin-bottom:10px;background:var(--surface)}.edit-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.smallbtn{border:0;background:var(--surface2);color:var(--accent-dark);border-radius:9px;padding:7px 10px}.actions{display:flex;gap:9px;margin-top:16px}.actions>*{flex:1}
+.hidden{display:none!important}.hint{font-size:12px;line-height:1.5;color:var(--muted)}.back{border:0;background:transparent;color:var(--accent-dark);padding:4px 0 16px;font-weight:600}
+@media(min-width:520px){.app{padding-top:32px}.theme-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.period{grid-template-columns:110px 1fr;padding:16px 18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div><p class="eyebrow" id="eyebrow">TODAY'S TIMETABLE</p><h1 id="pageTitle">Monday</h1><p class="sub" id="dateLine"></p></div>
+    <button class="iconbtn" id="settingsBtn" aria-label="Settings" title="Settings">⚙</button>
+  </header>
+  <main id="displayView">
+    <nav class="toolbar" id="dayPicker" aria-label="Choose a day to preview"></nav>
+    <div class="list" id="scheduleList"></div>
+    <div class="footer"><button class="secondary" id="editBtn">✎ &nbsp; Edit timetable</button></div>
+  </main>
+  <main id="editView" class="hidden">
+    <button class="back" id="backFromEdit">← &nbsp; Back to timetable</button>
+    <div class="panel">
+      <p class="section-label">Choose weekday</p>
+      <select id="editDay"></select>
+      <p class="hint">Each day has its own schedule. Changes to one day won't affect the others.</p>
+    </div>
+    <div id="editorList"></div>
+    <button class="secondary wide" id="addPeriod">＋ &nbsp; Add period</button>
+    <div class="actions"><button class="secondary" id="cancelEdit">Cancel</button><button class="primary" id="saveEdit">Save changes</button></div>
+  </main>
+  <main id="settingsView" class="hidden">
+    <button class="back" id="backFromSettings">← &nbsp; Back to timetable</button>
+    <div class="panel">
+      <p class="section-label">Appearance</p><h2>Colour theme</h2><p class="sub" style="margin-bottom:16px">Choose one of four quiet, aesthetic palettes.</p>
+      <div class="theme-grid" id="themeGrid"></div>
+    </div>
+    <div class="panel"><p class="section-label">About</p><p style="margin:0;font-size:14px">A simple timetable. Nothing extra.</p><p class="hint">Your timetable and theme are saved in this browser on this device.</p></div>
+  </main>
+</div>
+<script>
+const DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const THEMES={
+ Sage:{bg:"#f7f8f5",surface:"#ffffff",surface2:"#e8eee8",accent:"#729183",dark:"#344e43",ink:"#26352e",muted:"#77827b",line:"#e5e9e4",swatches:["#e8eee8","#b8cbbe","#729183","#344e43"]},
+ Lavender:{bg:"#f8f7fb",surface:"#ffffff",surface2:"#eeeaf6",accent:"#a99bcb",dark:"#65577f",ink:"#302b3b",muted:"#7d778a",line:"#e8e4ef",swatches:["#f0edf6","#d4cbe6","#a99bcb","#65577f"]},
+ "Dusty Pink":{bg:"#fcf7f7",surface:"#ffffff",surface2:"#faeeee",accent:"#dea4aa",dark:"#925d68",ink:"#3d2b2f",muted:"#8a777b",line:"#f0e5e6",swatches:["#faeeee","#f0cdcf","#dea4aa","#925d68"]},
+ "Powder Blue":{bg:"#f6f8fb",surface:"#ffffff",surface2:"#eaf0f7",accent:"#8cafd3",dark:"#385a7c",ink:"#263442",muted:"#748394",line:"#e2e9f1",swatches:["#eaf0f7","#c5d8ec","#8cafd3","#385a7c"]}
+};
+const STORE="minimalTimetable.v1";
+const emptySchedule=()=>DAYS.reduce((o,d)=>(o[d]=[],o),{});
+let state=loadState(), selectedDay=getToday(), editDay=getToday(), draft=[];
+let view="display";
+function getToday(){return DAYS[(new Date().getDay()+6)%7]}
+function loadState(){try{let x=JSON.parse(localStorage.getItem(STORE));if(x&&x.schedules&&x.theme&&THEMES[x.theme]){DAYS.forEach(d=>x.schedules[d] ||= []);return x}}catch(e){}return {theme:"Sage",schedules:emptySchedule()}}
+function persist(){localStorage.setItem(STORE,JSON.stringify(state))}
+function applyTheme(){let t=THEMES[state.theme];let r=document.documentElement;r.style.setProperty("--bg",t.bg);r.style.setProperty("--surface",t.surface);r.style.setProperty("--surface2",t.surface2);r.style.setProperty("--accent",t.accent);r.style.setProperty("--accent-dark",t.dark);r.style.setProperty("--ink",t.ink);r.style.setProperty("--muted",t.muted);r.style.setProperty("--line",t.line);document.querySelector('meta[name="theme-color"]').content=t.accent}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toMinutes(t){if(!t||!t.includes(":"))return -1;let [h,m]=t.split(":").map(Number);return h*60+m}
+function fmt(t){if(!t)return "";let [h,m]=t.split(":").map(Number);let ap=h>=12?"PM":"AM";h=h%12||12;return `${h}:${String(m).padStart(2,"0")} ${ap}`}
+function isCurrent(p){let now=new Date(),n=now.getHours()*60+now.getMinutes();return toMinutes(p.start)<=n&&n<toMinutes(p.end)}
+function renderDayPicker(){document.getElementById("dayPicker").innerHTML=DAYS.map(d=>`<button class="daybtn ${d===selectedDay?"active":""}" data-day="${d}">${d.slice(0,3)}</button>`).join("");document.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>{selectedDay=b.dataset.day;renderDisplay()})}
+function renderDisplay(){document.getElementById("pageTitle").textContent=selectedDay;document.getElementById("dateLine").textContent=selectedDay===getToday()?new Date().toLocaleDateString(undefined,{day:"numeric",month:"long",year:"numeric"}):"Previewing another day";renderDayPicker();let items=[...state.schedules[selectedDay]].sort((a,b)=>toMinutes(a.start)-toMinutes(b.start));let list=document.getElementById("scheduleList");if(!items.length){list.innerHTML=`<div class="empty"><h2>No periods added</h2><p>Your ${esc(selectedDay)} timetable will appear here after you add its periods.</p><button class="primary" id="emptyEdit">Set up timetable</button></div>`;document.getElementById("emptyEdit").onclick=()=>openEditor(selectedDay);return}
+list.innerHTML=items.map(p=>`<article class="period ${selectedDay===getToday()&&isCurrent(p)?"current":""}"><div class="time">${esc(fmt(p.start))}<br>– ${esc(fmt(p.end))}</div><div><div class="subject">${esc(p.subject)}</div>${selectedDay===getToday()&&isCurrent(p)?'<span class="tag">Now</span>':""}</div></article>`).join("")}
+function show(which){view=which;["display","edit","settings"].forEach(v=>document.getElementById(v+"View").classList.toggle("hidden",v!==which));document.getElementById("settingsBtn").classList.toggle("hidden",which!=="display");if(which==="display")renderDisplay();if(which==="settings")renderThemes()}
+function openEditor(day){editDay=day;draft=JSON.parse(JSON.stringify(state.schedules[day]||[]));document.getElementById("editDay").value=day;renderEditor();show("edit")}
+function renderEditor(){document.getElementById("editorList").innerHTML=draft.map((p,i)=>`<div class="edit-card"><div class="edit-head"><strong>Period ${i+1}</strong><button class="smallbtn" data-remove="${i}" aria-label="Remove period ${i+1}">Remove</button></div><div class="field"><label>Subject</label><input data-field="subject" data-i="${i}" value="${esc(p.subject)}" placeholder="e.g. Accountancy" maxlength="70"></div><div class="editor-row"><div class="field"><label>Start time</label><input type="time" data-field="start" data-i="${i}" value="${esc(p.start)}" required></div><div class="field"><label>End time</label><input type="time" data-field="end" data-i="${i}" value="${esc(p.end)}" required></div></div></div>`).join("")||`<div class="empty"><p>No periods yet. Add your first period below.</p></div>`;document.querySelectorAll("[data-field]").forEach(el=>el.oninput=()=>{draft[+el.dataset.i][el.dataset.field]=el.value});document.querySelectorAll("[data-remove]").forEach(el=>el.onclick=()=>{draft.splice(+el.dataset.remove,1);renderEditor()})}
+function renderThemes(){document.getElementById("themeGrid").innerHTML=Object.entries(THEMES).map(([name,t])=>`<button class="theme ${state.theme===name?"selected":""}" data-theme="${name}"><div class="swatches">${t.swatches.map(c=>`<span style="background:${c}"></span>`).join("")}</div><span class="theme-name">${name}</span>${state.theme===name?'<span class="check">✓</span>':""}</button>`).join("");document.querySelectorAll("[data-theme]").forEach(b=>b.onclick=()=>{state.theme=b.dataset.theme;persist();applyTheme();renderThemes()})}
+document.getElementById("settingsBtn").onclick=()=>show("settings");
+document.getElementById("editBtn").onclick=()=>openEditor(selectedDay);
+document.getElementById("backFromEdit").onclick=()=>show("display");
+document.getElementById("cancelEdit").onclick=()=>show("display");
+document.getElementById("backFromSettings").onclick=()=>show("display");
+document.getElementById("editDay").innerHTML=DAYS.map(d=>`<option>${d}</option>`).join("");
+document.getElementById("editDay").onchange=e=>{editDay=e.target.value;draft=JSON.parse(JSON.stringify(state.schedules[editDay]||[]));renderEditor()};
+document.getElementById("addPeriod").onclick=()=>{draft.push({subject:"",start:"09:00",end:"09:40"});renderEditor()};
+document.getElementById("saveEdit").onclick=()=>{let inputs=[...document.querySelectorAll("#editorList [data-field]")];inputs.forEach(el=>{draft[+el.dataset.i][el.dataset.field]=el.value.trim()});for(let i=0;i<draft.length;i++){let p=draft[i];if(!p.subject||!p.start||!p.end){alert("Please fill in each subject and start/end time.");return}if(toMinutes(p.end)<=toMinutes(p.start)){alert("Each period's end time must be after its start time.");return}}draft.sort((a,b)=>toMinutes(a.start)-toMinutes(b.start));state.schedules[editDay]=draft;selectedDay=editDay;persist();show("display")};
+applyTheme();document.getElementById("editDay").value=editDay;renderDisplay();
+if("serviceWorker" in navigator && location.protocol.startsWith("http"))navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+</script>
+</body>
+</html>
